@@ -20,17 +20,17 @@ public class Kmeans {
 			StringTokenizer st = new StringTokenizer(line.toString(),"\t");
 			@SuppressWarnings("unused")
 			String ip = st.nextToken();
-			String values = Resources.normalize6(conf,conf.get(Setup.JOB_PATH),st.nextToken());
+			List<Double> values = Resources.normalize6(conf,conf.get(Setup.JOB_PATH),st.nextToken()); // String values
 //			List<Double> distances = new ArrayList<>();
 			int k = 0;
 			int minDistIndex = k;
 			Double minDist = 0.0;
 			for(List<Double> centroid : centroids) {
 				Double d = 0.0;
-				StringTokenizer st1 = new StringTokenizer(values,";");
+//				StringTokenizer st1 = new StringTokenizer(values,";");
 				int i=0;
-				while(st1.hasMoreTokens()) {
-					d += Math.pow(Double.parseDouble(st1.nextToken())-centroid.get(i++),2);
+				for(Double v : values) { //st1.hasMoreTokens()	Double.parseDouble(st1.nextToken())
+					d += Math.pow(v-centroid.get(i++),2);
 				}
 				d = Math.sqrt(d);
 				 if(k == 0 || d < minDist) {
@@ -50,7 +50,7 @@ public class Kmeans {
 				}
 				k++;
 			}*/
-			context.write(new Text(String.valueOf(minDistIndex)), new Text(/*ip+";"+*/values));
+			context.write(new Text(String.valueOf(minDistIndex)), new Text(line));
 		}
 	}
 	public static class KReducer extends Reducer<Text,Text,Text,Text> {
@@ -61,13 +61,15 @@ public class Kmeans {
 //			List<Text> ip = new ArrayList<>();
 			List<Double> newCentroid = Resources.listInitZero(Integer.parseInt(conf.get(Setup.D_PARAM_SIZE)));
 			for(Text t : lines) {
-				StringTokenizer st = new StringTokenizer(t.toString(),";");
+				StringTokenizer st = new StringTokenizer(t.toString(),"\t");
 //				ip.add(new Text(st.nextToken()));
-//				String ip = st.nextToken();
+				@SuppressWarnings("unused")
+				String ip = st.nextToken();
+				List<Double> value = Resources.normalize6(conf,conf.get(Setup.JOB_PATH),st.nextToken());
 				int i = 0;
-				while(st.hasMoreTokens()){
+				for(Double v : value){
 					Double d = newCentroid.get(i);
-					newCentroid.set(i, d + Double.parseDouble(st.nextToken()));
+					newCentroid.set(i, d + v); //Double.parseDouble(st.nextToken())
 					i++;
 				}
 //				context.write(key, new Text(t));

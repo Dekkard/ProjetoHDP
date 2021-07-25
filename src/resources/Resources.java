@@ -147,18 +147,19 @@ public class Resources {
 		bw.close();
 		out.close();
 	}
-	public static String normalize6(Configuration conf, String path, String value) throws IOException {
+	public static List<Double> normalize6(Configuration conf, String path, String value) throws IOException {
 //		Double tr = Resources.readFileVar(Double.class, path, filename, FileSystem.get(conf));
 		StringTokenizer st = new StringTokenizer(value,";");
+		List<Double> listVar = new ArrayList<>();
 		
-		Double uReq = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_REQ);
-		Double session = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_SEC);
-		Double get = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_GET);
-		Double put = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_PUT);
-		Double post = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_POST);
-		Double del = Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_DEL);
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_REQ));
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_SEC));
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_GET));
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_PUT));
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_POST));
+		listVar.add(Double.parseDouble(st.nextToken())/(Double) Resources.readFileVar(conf, Double.class, path, Setup.MAX_DEL));
 		
-		return uReq+";"+session+";"+get+";"+put+";"+post+";"+del+";";
+		return listVar;
 	}
 	public static List<Double> loadVar6(Configuration conf) throws IOException{
 		List<Double> list = new ArrayList<>();

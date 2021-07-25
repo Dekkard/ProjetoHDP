@@ -11,6 +11,7 @@ import resources.Setup;
 public class ProjetoHDPMain {
 //	scp -P 15487 ./ProjetoHDP.jar hadoop@192.168.1.5:~/Downloads/
 //	scp -P 15487 ./ProjetoHDP.jar hadoop@192.168.1.6:~/Downloads/
+//	scp ProjetoHDP.jar bigdata@10.241.226.166:~/Downloads/
 	public static void main(String[] args) throws Exception {
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
@@ -22,7 +23,6 @@ public class ProjetoHDPMain {
 	    
 	    args = KmeansMain.setConfArgs(conf,args);
 		int res = ToolRunner.run(conf, new RegexReconMain(), args);
-		if(res==0) fs.delete(new Path(conf.get(Setup.JOB_PATH)+"/data.var"),true);
 		res = ToolRunner.run(conf, new KmeansMain(), args);
 	    System.exit(res);
 	}

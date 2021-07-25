@@ -9,7 +9,7 @@ public class Setup {
 	public static String MAX_POST = "max_post";
 	public static String MAX_DEL = "max_del";
 	/*Total de requisições registradas na amostra N*/
-	public static String N_TOTAL_REQUESTS = "total_requests"; //Integer
+	public static String N_TOTAL = "total"; //Integer
 	/*Tamanho do Cluster K*/
 	public static String K_CLUSTER_SIZE = "K_CLUSTER_SIZE"; //Integer
 	/*Quantidade de parâmetros D*/
@@ -25,4 +25,7 @@ public class Setup {
 	public static String CENTROID_CUR_PATH = "CENTROID_CUR_PATH";
 	public static String CENTROID = "centroid";
 	public static String NEW_CENTROID = "new_centroid";
+	/*Outras variáveis*/
+	public static String HIST_BIN_DIV = "HIST_BIN_DIV";
+	public static String NORM_ALG = "NORM_ALG";
 }

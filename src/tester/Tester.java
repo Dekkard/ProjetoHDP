@@ -3,26 +3,25 @@ package tester;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.io.DoubleWritable;
 
 import model.WebLog;
-import resources.FilenameGen;
 import resources.RegexMatch;
 import resources.Resources;
 import resources.Setup;
 
-@SuppressWarnings("unused")
+
 public class Tester {
 	protected static String TOTAL_REQUESTS = "TOTAL_REQUESTS";
 	private static String DELIMITER = ", \"[]";
@@ -259,5 +258,12 @@ public class Tester {
 		ddt(y.getClass());
 		ddt(Double.class);*/
 //		System.out.println(FilenameGen.randGen(18));
+		Date date = null;
+		try {
+			date = new SimpleDateFormat("DD/MMM/yyyy:HH:mm:ss").parse("22/Jan/2019:03:58:06");
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		System.out.println(date.getTime());
 	}
 }

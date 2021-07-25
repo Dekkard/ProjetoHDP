@@ -69,7 +69,6 @@ public class RegexReconMain extends Configured implements Tool{
 	    conf.set(Setup.JOB_PATH, jobs_path.getName()+"/job_"+"0".repeat(4-numJobsFiles.length())+numJobsFiles);
 	    
 		int res = ToolRunner.run(conf, new RegexReconMain(), args);
-		if(res==0) fs.delete(new Path(conf.get(Setup.JOB_PATH)+"/data.var"),true);
 	    System.exit(res);
 	}
 }
