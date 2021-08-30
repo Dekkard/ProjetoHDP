@@ -12,7 +12,7 @@ import resources.Setup;
 public class DisplayCentroids {
 	public static void main(String[] args) throws IOException {
 		if(args.length > 1) {
-			System.err.println("Compares only one pair of centroid and new centroid, just name the folder only.");
+			System.err.println("Compares only one pair of centroid and new centroid, just name the folder.");
 			System.exit(2);
 		}
 		Configuration conf = new Configuration();

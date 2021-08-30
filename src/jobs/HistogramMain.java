@@ -85,16 +85,15 @@ public class HistogramMain extends Configured implements Tool{
 		if(fs.exists(p)) fs.delete(p,true);
 	    job.setOutputKeyClass(Text.class);
 	    job.setOutputValueClass(Text.class);
-		FileInputFormat.addInputPath(job, new Path(conf.get(Setup.JOB_PATH)+"/data"));
+		FileInputFormat.addInputPath(job, new Path(conf.get(Setup.JOB_PATH)+"/data.vector"));
 		FileOutputFormat.setOutputPath(job, p);
 	    
 		return job.waitForCompletion(true)?0:1;
 	}
 	public static void main(String[] args) throws Exception {
+		if(args.length < 1) System.exit(usage());
+		
 		Configuration conf = new Configuration();
-		if ( args.length < 1) {
-			System.exit(usage());
-	    }
 		conf.set(Setup.JOB_PATH, args[args.length-1]);
 		int res = ToolRunner.run(conf, new HistogramMain(), setConfArgs(conf, args));
 		System.exit(res);
