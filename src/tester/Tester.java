@@ -852,6 +852,5 @@ public class Tester {
 		System.out.println("Tempo de sessão médio:\t"+session_time/sessions_total);
 		System.out.println("Tempo médio por sessão:\t"+sessions_median);
 		System.out.println("Quantidade de sessões:\t"+sessions_qtd);*/
-		System.out.println(25461.0-25461.000000000004<=1E-4);
 	}
 }

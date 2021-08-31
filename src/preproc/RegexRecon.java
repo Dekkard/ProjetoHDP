@@ -110,9 +110,9 @@ public class RegexRecon {
 					}
 					v = Integer.parseInt(value[2]); //Integer.parseInt(st.nextToken());
 					int code = 100;
-					for(Integer c : codes) {
-						if(v>code && v<(code+99)) {
-							c += 1;
+					for(int i=0;i<codes.length;i++) {
+						if(v>=code && v<=(code+99)) {
+							codes[i] += 1;
 						}
 						code += 100;
 					}

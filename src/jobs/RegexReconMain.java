@@ -55,7 +55,6 @@ public class RegexReconMain extends Configured implements Tool{
 		FileSystem fs = FileSystem.get(conf);
 		conf.set(Setup.WORD_WANTED,Resources.createFilter(conf.get(Setup.WORD_WANTED)));
 		conf.set(Setup.WORD_UNWANTED,Resources.createFilter(conf.get(Setup.WORD_UNWANTED)));
-		
 		Long timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3));
 		Job job = Job.getInstance(conf, "RegexRecon - File parse");
 		job.setJarByClass(RegexRecon.class); // Classe no qual o Job será baseado

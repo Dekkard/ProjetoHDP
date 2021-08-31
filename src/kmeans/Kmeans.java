@@ -42,7 +42,7 @@ public class Kmeans {
 					String rl;
 //			    	List<String> list = new ArrayList<>();
 //					String[] vector = st.nextToken().split(";");
-			        while ((rl = br.readLine()) != null){
+			        while ((rl = br.readLine()) != null) {
 //			        	list.add(known_url);
 			        	String[] meta = rl.split("	");
 			        	meta = meta[1].split(";");
@@ -101,7 +101,7 @@ public class Kmeans {
 		        			Integer cur_bin_val = Integer.parseInt(bin[1]);
 //							qtd_ += cur_bin_val;
 							qtd += cur_bin_val;
-			        		if( qtd-(part*(cur_div+1))<=1E-4 ) {
+			        		if( qtd>=(part*(cur_div+1)) || qtd-(part*(cur_div+1))<=1E-4 ) {
 			        			int div = (int) Math.floor(qtd/part);
 //			        			div += cur_div;
 //						        qtd_ac += qtd;
