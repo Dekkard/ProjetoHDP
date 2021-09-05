@@ -13,6 +13,8 @@ public class JobsDriver {
 	    	jd.addClass("DisplayCentroids", DisplayCentroids.class, "Display and compare the centroids iteraction.");
 	    	jd.addClass("InnitCentroids", InnitCentroids.class, "Job to innitialize Centroids, serves as a test.");
 	    	jd.addClass("Histogram", HistogramMain.class, "Display the histogram of the normalizaed data.");
+	    	jd.addClass("Recommender", Recommender.class, "Used to recommend URL from each group list.");
+	    	jd.addClass("JobParser", JobParserMain.class, "Use incase the file has already been parsed.");
 	    	exitCode = jd.run(argv);
 	    }
 	    catch(Throwable e){

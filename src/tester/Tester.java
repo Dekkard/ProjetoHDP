@@ -1,12 +1,13 @@
 package tester;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -14,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
@@ -217,7 +217,53 @@ public class Tester {
 		if(one > two) return max?one:two;
 		else return max?two:one;
 	}
-	public static void main(String[] args) throws IOException {
+	private static void collectTimes() throws IOException, FileNotFoundException {
+		Configuration conf = new Configuration();
+		conf.set("fs.defaultFS", "hdfs://10.241.226.166:9001");
+		FileSystem fs = FileSystem.get(conf);
+		File file = new File("C:\\Users\\gusta\\Downloads\\Estudos\\IFB\\Programas\\eclipse-21-03-workspace\\time.txt");
+		FileOutputStream out = new FileOutputStream(file);
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
+		String path = "/user/bigdata/jobs/testsfiles";
+		Resources.iterateFiles(fs,new Path(path),(p)->{
+			try {
+//				System.out.println(p.getName());
+				bw.write(p.getName()+"\r\n");
+				Resources.iterateFiles(fs,p,"Time.meta",(p1)->{
+					try {
+						Resources.readFiles(fs, p, p1.getName(), (rl)->{
+//							System.out.println(rl);
+							try {
+								String[] v = rl.split(":");
+								int h=0,m=0,s=0;
+								String[] t = v[1].replace(" ","").split("h|m|s");
+								if(t.length==3) {
+									h = Integer.parseInt(t[0]);
+									m = Integer.parseInt(t[1]);
+									s = Integer.parseInt(t[2]);
+								} else if(t.length==2){
+									m = Integer.parseInt(t[0]);
+									s = Integer.parseInt(t[1]);
+								} else if(t.length==1) {
+									s = Integer.parseInt(t[0]);
+								}
+								bw.write(v[0]+":\t"+(h*3600+m*60+s)+"\r\n");
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						});
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+		bw.close();
+		out.close();
+	}
+	public static void main(String[] args) throws IOException, FileNotFoundException, InterruptedException {
 //		wordRecon1(args);
 //		wordRecon2(args);
 //		wordRecon3(args);
@@ -693,23 +739,126 @@ public class Tester {
 //		String REGEX_CODE = "((\\d{3})\\s(\\d+))";
 //		String REGEX_PROTOCOL = "(HTTP\\/\\d+(\\.\\d)?)";*/
 		
-		
 //		Long timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3));
-//		Configuration conf = new Configuration();
-//		conf.set("fs.defaultFS", "hdfs://10.241.226.166:9001");
-//		FileSystem fs = FileSystem.get(conf);
 //		Path path = new Path("/user/bigdata");
+//		Path path1 = new Path("/user/bigdata/jobs/31-08-2021/job_0004/data.vector");
+//		Path path2 = new Path("/user/bigdata/jobs/31-08-2021/job_0004/data.meta");
 ////		Path path3 = new Path("/user/bigdata/jobs/");
 //		String fnamek = "(KnownURL-r-)(\\d+)";
 //		String fnameh = "(Histogram-r-)(\\d+)";
+//		String fnamev = "(VarianceMeta-r-)(\\d+)";
+//		String fnamep = "(part-r-)(\\d+)";
 //		String fname4 = "access_sample4.log";
 //		String fname5 = "access_sample5.log";
 //		String fname = "access.log";
+//		String fsample1 = "sample1.log";
+//		Resources.readFiles(fs, path1, fnamep, (line1)->{
+//			String[] vector = line1.split("	");
+////			vector = vector[1].split(";");
+//			StringTokenizer st = new StringTokenizer(vector[1],";");
+//			try {
+//				Resources.readFiles(fs, path2, fnamev, (line2)->{
+//					String[] meta = line2.split("	");
+//					meta = meta[1].split(";");
+//					Double x = Double.parseDouble(st.nextToken());
+//					Double s = Double.parseDouble(meta[0]);
+//					Double t = Double.parseDouble(meta[1]);
+//					Double d = Double.parseDouble(meta[2]);
+//					double dg = Math.abs((x-(s/t))/d);
+//					double nd = Math.pow(Math.E,(Math.pow(x-(s/t),2))/(2*Math.pow(d,2)))/Math.sqrt(2*Math.PI*d);
+//					System.out.print(dg+"|"+nd+"; ");
+//				});
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			System.out.println();
+//		});
+//		File file = new File("C:\\Users\\gusta\\Downloads\\Estudos\\IFB\\Programas\\eclipse-21-03-workspace\\time.txt");
+//		FileOutputStream out = new FileOutputStream(file);
+//		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
+//		String path = "/user/bigdata/jobs/testsfiles";
+//		Resources.iterateFiles(fs,new Path(path),(p)->{
+//			try {
+////				System.out.println(p.getName());
+//				bw.write(p.getName()+"\r\n");
+//				Resources.iterateFiles(fs,p,"Time.meta",(p1)->{
+//					try {
+//						Resources.readFiles(fs, p, p1.getName(), (rl)->{
+////							System.out.println(rl);
+//							try {
+//								bw.write(rl+"\r\n");
+//							} catch (IOException e) {
+//								e.printStackTrace();
+//							}
+//						});
+//					} catch (IOException e) {
+//						e.printStackTrace();
+//					}
+//				});
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		});
+//		bw.close();
+//		out.close();
+		/*TODO:*/
+		collectTimes();
+		
+//		RemoteIterator<FileStatus> lfs_1 = fs.listStatusIterator(new Path(path));
+//    	while(lfs_1.hasNext()) {
+//			Path p = lfs_1.next().getPath();
+//			System.out.println(p.getName());
+//			RemoteIterator<FileStatus> lfs_2 = fs.listStatusIterator(p);
+//	    	while(lfs_2.hasNext()) {
+//	    		Path p2 = lfs_2.next().getPath();
+//	    		if(p2.getName().matches("Time.meta")) {
+//	    			Resources.readFiles(fs, p, p2.getName(), (rl)->{
+//	    				System.out.println(rl);
+//	    			});
+//	    		}
+//	    	}
+//		}
+		
+//	    path_kmeans_job += "/"+path_name;
+//	    Integer r_suf = 0;
+//		RemoteIterator<FileStatus> lfs_kmeans_round = fs.listStatusIterator(new Path(path_kmeans_job));
+//		while(lfs_kmeans_round.hasNext()) {
+//			Path p = lfs_kmeans_round.next().getPath();
+//			System.out.println(p.getName());
+//			Matcher mat = Pattern.compile("round_(\\d+)").matcher(p.getName());
+//			if(mat.find()) {
+//				int suf = Integer.parseInt(mat.group(1));
+//				if(r_suf<suf) {
+//					r_suf = suf;
+//					path_name = p.getName();
+//				}
+//			}
+//		}
+//		path_kmeans_job += "/"+path_name;
+//		RemoteIterator<FileStatus> lfs_groups = fs.listStatusIterator(new Path(path_kmeans_job));
+//		while(lfs_groups.hasNext()) {
+//			Path p = lfs_groups.next().getPath();
+//			if(p.getName().matches("(GroupList(\\d+))-m-(\\d+)")) {
+//				System.out.println(p.getName());
+////				job.addCacheFile(p.toUri());
+//				Matcher mat = Pattern.compile("(GroupList(\\d+))-m-(\\d+)").matcher(p.getName());
+//				if(mat.find()) {
+////					MultipleOutputs.addNamedOutput(job, mat.group(1), TextOutputFormat.class, Text.class, Text.class);
+//					System.out.println(mat.group(1));
+//				}
+//			}
+//		}	
+//		
+//		System.out.println("Tempo Ex.: "+(LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3))-timenow));
+		
 //		List<String> url_list = new ArrayList<>();
 //		List<Integer> url_qtd = new ArrayList<>();
-//		Resources.readFiles(fs, path, fname5 , (line)->{
-////			System.out.println(line);
-//			WebLog wl = new WebLog(line,".*(product).*",".*(image|filter|search|rss|site|producttype).*");
+//		Resources.readFiles(fs, path, fsample1 , (line)->{
+//			System.out.println(line);
+//			WebLog wl = new WebLog(line,".*(product).*",".*(image|filter|search|rss|site|browse).*");
+//			if(wl.getUrl()!=null) {
+//				System.out.println(wl.getDate()+" "+wl.getTime()+" "+wl.getGMT()+"\t"+wl.getSeconds());
+//			}
 //			if(wl.getUrl()!=null) {
 //				String url = Resources.urlPruner(wl.getUrl());
 ////				System.out.println(url);
@@ -726,9 +875,8 @@ public class Tester {
 //		for(int i=0;i<url_list.size();i++) {
 //			System.out.println(url_list.get(i)+" >> "+url_qtd.get(i));
 //		}
-//		System.out.println("Tempo Ex.: "+(LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3))-timenow));
-
 		
+				
 //		/*int i = Resources.readFiles1(fs, path1, fname, (line)->{
 //			return 1;
 //		});
@@ -852,5 +1000,6 @@ public class Tester {
 		System.out.println("Tempo de sessão médio:\t"+session_time/sessions_total);
 		System.out.println("Tempo médio por sessão:\t"+sessions_median);
 		System.out.println("Quantidade de sessões:\t"+sessions_qtd);*/
+		
 	}
 }
