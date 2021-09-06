@@ -9,12 +9,15 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
@@ -549,9 +552,81 @@ public class Tester {
 		br.close();
 		in.close();*/
 //		System.out.println(Integer.parseInt("Param_00001".split("Param_")[1]));
+				
 //		Configuration conf = new Configuration();
 //		conf.set("fs.defaultFS", "hdfs://10.241.226.166:9001");
 //		FileSystem fs = FileSystem.get(conf);
+//		List<String> gl_list = new ArrayList<>();
+//		String path = "/user/bigdata/jobs/testsfiles/main_01/data.kmeans/kmeans_06/round_10";
+//		String path1 = "/user/bigdata/jobs/testsfiles/main_01/data.url";
+//		String path2 = "/user/bigdata/jobs/testsfiles/main_01/data.kmeans";
+//		Comparator<FileStatus> comp = new Comparator<FileStatus>() {
+//			@Override
+//			public int compare(FileStatus o1, FileStatus o2) {
+//				if (o1.getModificationTime() >= o2.getModificationTime())
+//					return -1;
+//				else
+//					return 1;
+//			}
+//		};
+//		FileStatus[] fsts = fs.listStatus(new Path(path2));
+//		Arrays.sort(fsts, comp);
+//		FileStatus[] fsts1 = fs.listStatus(fsts[0].getPath());
+//		Arrays.sort(fsts1, comp);
+//		String path3 =  path2+"/"+fsts[0].getPath().getName() + "/" + fsts1[0].getPath().getName();
+//		Resources.readFiles(fs, new Path(path), "GroupList-m-(\\d+)", (p)->{
+//			String[] val = p.toString().split("	");
+//			if(!gl_list.contains(val[1])) gl_list.add(val[1]);
+//		});
+//		gl_list.sort(new Comparator<String>() {
+//			@Override
+//			public int compare(String o1, String o2) {
+//				if(Integer.valueOf(o1)>=Integer.valueOf(o2))
+//					return 1;
+//				else
+//					return -1;
+//			}
+//		});
+//		for(String l : gl_list) {
+//			System.out.print(l+"	");
+//		}
+//		System.out.println();
+		System.out.println("01.".matches("(\\d+)"));
+//		List<List<String>> url_listGroups = new ArrayList<>();
+//		List<String> url_groupname = new ArrayList<>();
+//		FileStatus[] uris = fs.listStatus(new Path(path));
+//		int i = -1;
+//		for (FileStatus uri : uris) {
+//			Path path = uri.getPath();
+//			if (path.getName().matches("(GroupList(\\d+))-m-(\\d+)")) {
+//				String group_out = "";
+//				Matcher mat = Pattern.compile("(GroupList(\\d+))-m-(\\d+)").matcher(path.getName());
+//				if (mat.find()) {
+//					group_out = mat.group(1);
+//					if(!url_groupname.contains(group_out)) {
+//						url_groupname.add(group_out);
+//						url_listGroups.add(new ArrayList<>());
+//						i++;
+//					}
+//				}
+//				FSDataInputStream in = fs.open(path);
+//				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+//				String known_ip;
+//				while ((known_ip = br.readLine()) != null) {
+//					url_listGroups.get(i).add(known_ip);
+//				}
+//			}
+//		}
+//		for(int j=0;j<url_groupname.size();j++) {
+//			System.out.println(url_groupname.get(j));
+//			for(int k = 0;k<url_listGroups.get(j).size();k++) {
+//				System.out.print(url_listGroups.get(j).get(k)+" -");
+//			}
+//			System.out.println();
+//		}
+		
+		
+		
 //		Integer k = 30;
 //		Integer bin_size = 25;
 //		
@@ -802,7 +877,7 @@ public class Tester {
 //		bw.close();
 //		out.close();
 		/*TODO:*/
-		collectTimes();
+//		collectTimes();
 		
 //		RemoteIterator<FileStatus> lfs_1 = fs.listStatusIterator(new Path(path));
 //    	while(lfs_1.hasNext()) {
@@ -1000,6 +1075,5 @@ public class Tester {
 		System.out.println("Tempo de sessão médio:\t"+session_time/sessions_total);
 		System.out.println("Tempo médio por sessão:\t"+sessions_median);
 		System.out.println("Quantidade de sessões:\t"+sessions_qtd);*/
-		
 	}
 }

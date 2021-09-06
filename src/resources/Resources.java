@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -258,6 +260,15 @@ public class Resources {
 		return ((s >= 3600) ? (hour + "h") : "") + ((s >= 60) ? (min + "m") : "") + sec + "s";
 	}
 
+	public static Double distr(Double valor, Double sum, Double total, Double dev, String method) {
+		if (method.equals("1"))
+			return Math.abs((valor - (sum / total)) / dev);
+		else if (method.equals("2"))
+			return Math.pow(Math.E, -1*((Math.pow(valor - (sum / total), 2)) / (2 * Math.pow(dev, 2))))
+					/ Math.sqrt(2 * Math.PI * Math.pow(dev,2));
+		return Math.abs((valor - (sum / total)) / dev);
+	}
+
 	public static String createFilter(String words) {
 		String[] word = words.split(",");
 		String regex_filter = "";
@@ -289,19 +300,15 @@ public class Resources {
 		return regex_url_unfilter;
 	}
 
-	public interface StoredMethod {
-		void func(String line);
+	public interface StoredMethodString {
+		void stored(String line);
 	}
 
-	public interface StoredMethod3 {
-		void func(Path p);
+	public interface StoredMethodPath {
+		void stored(Path p);
 	}
 
-	public interface StoredMethod2 {
-		Integer funcInt(String line);
-	}
-
-	public static void readFiles(FileSystem fs, Path path, String fname_regex, StoredMethod sm)
+	public static void readFiles(FileSystem fs, Path path, String fname_regex, StoredMethodString sms)
 			throws FileNotFoundException, IOException {
 		RemoteIterator<FileStatus> lfs = fs.listStatusIterator(path);
 		while (lfs.hasNext()) {
@@ -311,7 +318,7 @@ public class Resources {
 				BufferedReader br = new BufferedReader(new InputStreamReader(in));
 				String rl;
 				while ((rl = br.readLine()) != null) {
-					sm.func(rl);
+					sms.stored(rl);
 				}
 				br.close();
 				in.close();
@@ -319,44 +326,29 @@ public class Resources {
 		}
 	}
 
-	public static void iterateFiles(FileSystem fs, Path path, String fname_regex, StoredMethod3 sm3)
+	public static void iterateFiles(FileSystem fs, Path path, String fname_regex, StoredMethodPath smp)
 			throws FileNotFoundException, IOException {
 		RemoteIterator<FileStatus> lfs = fs.listStatusIterator(path);
 		while (lfs.hasNext()) {
 			Path p = lfs.next().getPath();
 			if (p.getName().matches(fname_regex)) {
-				sm3.func(p);
+				smp.stored(p);
 			}
 		}
 	}
 
-	public static void iterateFiles(FileSystem fs, Path path, StoredMethod3 sm3)
+	public static void iterateFiles(FileSystem fs, Path path, StoredMethodPath smp)
 			throws FileNotFoundException, IOException {
 		RemoteIterator<FileStatus> lfs = fs.listStatusIterator(path);
 		while (lfs.hasNext()) {
 			Path p = lfs.next().getPath();
-			sm3.func(p);
+			smp.stored(p);
 		}
 	}
 
-	public static Integer readFiles1(FileSystem fs, Path path, String fname_regex, StoredMethod2 sm)
-			throws FileNotFoundException, IOException {
-		int i = 0;
-		RemoteIterator<FileStatus> lfs = fs.listStatusIterator(path);
-		while (lfs.hasNext()) {
-			Path p = lfs.next().getPath();
-			if (p.getName().matches(fname_regex)) {
-				FSDataInputStream in = fs.open(p);
-				BufferedReader br = new BufferedReader(new InputStreamReader(in));
-				String rl;
-				while ((rl = br.readLine()) != null) {
-					i += sm.funcInt(rl);
-				}
-				br.close();
-				in.close();
-			}
-		}
-		return i;
+	public static void recordTime(Configuration conf, Long timethen, String name) throws IOException {
+		Long timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3)) - timethen;
+		Resources.appendFile(conf, name + timenow, "Time.meta", conf.get(Setup.JOB_PATH));
 	}
 
 	public static List<Double> normalize6(Configuration conf, String path, String value) throws IOException {

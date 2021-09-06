@@ -10,11 +10,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import resources.Resources;
-import resources.Resources.StoredMethod;
+import resources.Resources.StoredMethodString;
 
 @SuppressWarnings("all")
 public class RegexTimeExecutionTester {
-	public static void timedExec(FileSystem fs, int num_rep, Path path, String fname, StoredMethod sm) throws FileNotFoundException, IOException {
+	public static void timedExec(FileSystem fs, int num_rep, Path path, String fname, StoredMethodString sm) throws FileNotFoundException, IOException {
 		Long timenow, timenowinter;
 		timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3));
 		for(int i=1;i<=num_rep;i++) {

@@ -56,40 +56,66 @@ public class RegexReconMain extends Configured implements Tool {
 		return 2;
 	}
 
-	public static String[] setConfArgs(Configuration conf, String[] args) throws IllegalArgumentException, IOException {
+	public static String[] setConfArgs(Configuration conf, String[] args, boolean bin_b, boolean klust_b,
+			boolean word_b, boolean na_b) throws IllegalArgumentException, IOException {
 		conf.set(Setup.WORD_WANTED, "");
 		conf.set(Setup.WORD_UNWANTED, "");
 		List<String> otherArgs = new ArrayList<>();
-		int flag_b = 0, flag_w = 0, flag_u = 0, flag_k = 0, k = 0;
+		int flag_b = 0, flag_w = 0, flag_u = 0, flag_k = 0, flag_d = 0, k = 0;
 		while (k < args.length) {
 			if (args[k].equals("-b")) {
 				if (flag_b == 1)
 					System.exit(usage());
 				else
 					flag_b++;
-				String bin = args[++k];
-				conf.setInt(Setup.HIST_BIN_DIV, Integer.parseInt(bin));
-				Resources.writeFileVar(conf, conf.get(Setup.JOB_PATH), "hist_bin", bin);
+				if (bin_b) {
+					String bin = args[++k];
+					conf.setInt(Setup.HIST_BIN_DIV, Integer.parseInt(bin));
+					Resources.writeFileVar(conf, conf.get(Setup.JOB_PATH), "hist_bin", bin);
+				} else
+					k++;
 			} else if (args[k].equals("-w")) {
 				if (flag_w == 1)
 					System.exit(usage());
 				else
 					flag_w++;
-				conf.set(Setup.WORD_WANTED, args[++k]);
+				if (word_b)
+					conf.set(Setup.WORD_WANTED, args[++k]);
+				else
+					k++;
 			} else if (args[k].equals("-u")) {
 				if (flag_u == 1)
 					System.exit(usage());
 				else
 					flag_u++;
-				conf.set(Setup.WORD_UNWANTED, args[++k]);
+				if (word_b)
+					conf.set(Setup.WORD_UNWANTED, args[++k]);
+				else
+					k++;
 			} else if (args[k].equals("-k") || args[k].equals("--cluster")) {
 				if (flag_k == 1)
 					System.exit(usage());
 				else
 					flag_k++;
-				String kluster = args[++k];
-				conf.setInt(Setup.K_CLUSTER_SIZE, Integer.parseInt(kluster));
-				Resources.writeFileVar(conf, conf.get(Setup.JOB_PATH), Setup.K_CLUSTER_SIZE, kluster);
+				if (klust_b) {
+					String kluster = args[++k];
+					conf.setInt(Setup.K_CLUSTER_SIZE, Integer.parseInt(kluster));
+					Resources.writeFileVar(conf, conf.get(Setup.JOB_PATH), Setup.K_CLUSTER_SIZE, kluster);
+				} else
+					k++;
+			} else if (args[k].equals("-d")) {
+				if (flag_d == 1)
+					System.exit(usage());
+				else
+					flag_d++;
+				if (na_b) {
+					k++;
+					if(args[k].matches("gau|gauss|gaussian|1"))
+						conf.set(Setup.DIST_METHOD, "1");
+					else if(args[k].matches("norm|normal|2"))
+						conf.set(Setup.DIST_METHOD, "2");
+				} else
+					k++;
 			} else {
 				if (args.length - k < 1) {
 					System.exit(usage());
@@ -138,7 +164,7 @@ public class RegexReconMain extends Configured implements Tool {
 		int res = job.waitForCompletion(true) ? 0 : 1;
 		if (res == 1)
 			return res;
-		recordTime(conf, timenow, "File parse: ");
+		Resources.recordTime(conf, timenow, "File parse: ");
 //		fs.setStoragePolicy(out_url, "LAZY_PERSIST");
 
 		return regexReconSecondPart(conf, fs);
@@ -178,41 +204,20 @@ public class RegexReconMain extends Configured implements Tool {
 		int res = job_url.waitForCompletion(true) ? 0 : 1;
 		if (res == 1)
 			return res;
-		recordTime(conf, timenow, "URL parse: ");
+		Resources.recordTime(conf, timenow, "URL parse: ");
 		timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3));
-		Job job_ttl = Job.getInstance(conf, "RegexRecon - Normal parse");
-		job_ttl.setJarByClass(RegexRecon.class);
-		job_ttl.setMapperClass(NormMapper.class);
-		job_ttl.setCombinerClass(Reducer.class);
-		job_ttl.setReducerClass(NormReducer.class);
-		job_ttl.setOutputKeyClass(Text.class);
-		job_ttl.setOutputValueClass(Text.class);
-		FileInputFormat.addInputPath(job_ttl, new Path(conf.get(Setup.JOB_PATH) + "/data.vector"));
-		FileOutputFormat.setOutputPath(job_ttl, new Path(conf.get(Setup.JOB_PATH) + "/data.meta"));
-		MultipleOutputs.addNamedOutput(job_ttl, "Histogram", TextOutputFormat.class, Text.class, Text.class);
-		MultipleOutputs.addNamedOutput(job_ttl, "VarianceMeta", TextOutputFormat.class, Text.class, Text.class);
-		res = job_ttl.waitForCompletion(true) ? 0 : 1;
+		res = histoParse(conf);
 		if (res == 1)
 			return res;
-		recordTime(conf, timenow, "Normal parse: ");
+		Resources.recordTime(conf, timenow, "Histogram: ");
 		conf.setInt(Setup.D_PARAM_SIZE, Resources.readFileVar(conf, Integer.class, conf.get(Setup.JOB_PATH), "param"));
 
 		if (!fs.exists(new Path(conf.get(Setup.JOB_PATH) + "/data.norm"))) {
 			timenow = LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3));
-			Job job_norm = Job.getInstance(conf, "K-means - Normalization");
-			job_norm.setJarByClass(Kmeans.class);
-			job_norm.setMapperClass(KNormalizer.class);
-			job_norm.setCombinerClass(Reducer.class);
-			job_norm.setReducerClass(Reducer.class);
-			job_norm.setOutputKeyClass(Text.class);
-			job_norm.setOutputValueClass(Text.class);
-			FileInputFormat.addInputPath(job_norm, new Path(conf.get(Setup.JOB_PATH) + "/data.vector"));
-			FileOutputFormat.setOutputPath(job_norm, new Path(conf.get(Setup.JOB_PATH) + "/data.norm"));
-			LazyOutputFormat.setOutputFormatClass(job_norm, TextOutputFormat.class);
-			res = job_norm.waitForCompletion(true) ? 0 : 1;
+			res = normParse(conf);
 			if (res == 1)
 				return res;
-			recordTime(conf, timenow, "Normalization: ");
+			Resources.recordTime(conf, timenow, "Normalization: ");
 		}
 		Integer kluster = conf.getInt(Setup.K_CLUSTER_SIZE, 5);
 		if (!fs.exists(new Path(conf.get(Setup.JOB_PATH) + "/data.centroids" + kluster))) {
@@ -220,16 +225,43 @@ public class RegexReconMain extends Configured implements Tool {
 			res = innitCentroids(conf, fs, kluster);
 			if (res == 1)
 				return res;
-			recordTime(conf, timenow, "Centroid-" + kluster + " Innit: ");
+			Resources.recordTime(conf, timenow, "Centroid-" + kluster + " Innit: ");
 		}
 		return res;
 
 	}
 
-	private static void recordTime(Configuration conf, Long timenow, String name) throws IOException {
-		Resources.appendFile(conf,
-				name + Resources.timeParse(LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3)) - timenow),
-				"Time.meta", conf.get(Setup.JOB_PATH));
+	public static Integer histoParse(Configuration conf)
+			throws IOException, InterruptedException, ClassNotFoundException {
+		Job job_histo = Job.getInstance(conf, "RegexRecon - Histogram");
+		job_histo.setJarByClass(RegexRecon.class);
+		job_histo.setMapperClass(NormMapper.class);
+		job_histo.setCombinerClass(Reducer.class);
+		job_histo.setReducerClass(NormReducer.class);
+		job_histo.setOutputKeyClass(Text.class);
+		job_histo.setOutputValueClass(Text.class);
+		FileInputFormat.addInputPath(job_histo, new Path(conf.get(Setup.JOB_PATH) + "/data.vector"));
+		FileOutputFormat.setOutputPath(job_histo, new Path(conf.get(Setup.JOB_PATH) + "/data.meta"));
+		MultipleOutputs.addNamedOutput(job_histo, "Histogram", TextOutputFormat.class, Text.class, Text.class);
+		MultipleOutputs.addNamedOutput(job_histo, "VarianceMeta", TextOutputFormat.class, Text.class, Text.class);
+		int res = job_histo.waitForCompletion(true) ? 0 : 1;
+		return res;
+	}
+
+	public static Integer normParse(Configuration conf)
+			throws IOException, InterruptedException, ClassNotFoundException {
+		Job job_norm = Job.getInstance(conf, "K-means - Normalization");
+		job_norm.setJarByClass(Kmeans.class);
+		job_norm.setMapperClass(KNormalizer.class);
+		job_norm.setCombinerClass(Reducer.class);
+		job_norm.setReducerClass(Reducer.class);
+		job_norm.setOutputKeyClass(Text.class);
+		job_norm.setOutputValueClass(Text.class);
+		FileInputFormat.addInputPath(job_norm, new Path(conf.get(Setup.JOB_PATH) + "/data.vector"));
+		FileOutputFormat.setOutputPath(job_norm, new Path(conf.get(Setup.JOB_PATH) + "/data.norm"));
+		LazyOutputFormat.setOutputFormatClass(job_norm, TextOutputFormat.class);
+		int res = job_norm.waitForCompletion(true) ? 0 : 1;
+		return res;
 	}
 
 	public static Integer innitCentroids(Configuration conf, FileSystem fs, Integer kluster)
@@ -263,7 +295,7 @@ public class RegexReconMain extends Configured implements Tool {
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 		setFilePath(conf, fs);
-		int res = ToolRunner.run(conf, new RegexReconMain(), setConfArgs(conf, args));
+		int res = ToolRunner.run(conf, new RegexReconMain(), setConfArgs(conf, args, true, true, true, true));
 		System.exit(res);
 	}
 }

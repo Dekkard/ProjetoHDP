@@ -56,7 +56,7 @@ public class Kmeans {
 							newline += "0.0;";
 						else {
 							try {
-								Double v = Math.abs((x - (s / t)) / d);
+								Double v = Resources.distr(x, s, t, d, conf.get(Setup.DIST_METHOD));
 								newline += (Double.isNaN(v) ? 0.0 : v) + ";";
 							} catch (ArithmeticException e) {
 								newline += "0.0;";
@@ -168,11 +168,11 @@ public class Kmeans {
 	}
 
 	public static class KMapper extends Mapper<Object, Text, Text, Text> {
-		private MultipleOutputs<Text, Text> mos;
+//		private MultipleOutputs<Text, Text> mos;
 		List<String> centroid_old = new ArrayList<>();
 
 		public void setup(Context context) throws IOException {
-			mos = new MultipleOutputs<Text, Text>(context);
+//			mos = new MultipleOutputs<Text, Text>(context);
 			FileSystem fs = FileSystem.get(context.getConfiguration());
 			URI[] uri_list = context.getCacheFiles();
 			for (URI uri : uri_list) {
@@ -241,8 +241,8 @@ public class Kmeans {
 			String named_index = String.valueOf(minDistIndex);
 			named_index = "0".repeat(String.valueOf(kluster).length() - named_index.length()) + named_index;
 			context.write(new Text(named_index), new Text("newcentroids>" + newline));
-			mos.write("GroupList" + named_index, new Text(ip), null);
-//			context.write(new Text("GroupList"+named_index), new Text(ip));
+//			mos.write("GroupList", new Text(ip), new Text(named_index));
+			context.write(new Text(ip), new Text(named_index));
 		}
 	}
 
@@ -254,84 +254,62 @@ public class Kmeans {
 		}
 
 		public void reduce(Text key, Iterable<Text> lines, Context context) throws IOException, InterruptedException {
-			/*
-			 * if(key.toString().matches("GroupList(\\d+)")) { for(Text t : lines)
-			 * mos.write(key.toString(), t, null); } else
-			 * if(key.toString().matches("(\\d+)")){
-			 */
-			Configuration conf = context.getConfiguration();
-//			List<Double> newCentroid = listInit(Integer.parseInt(context.getConfiguration().getInt(VarSet.D_PARAM_SIZE,15)));
-//			List<List<Double>> newCentroids = Resources.readList(conf, Double.class, Setup.NEW_CENTROID, conf.get(Setup.CENTROID_CUR_PATH)); //Integer.parseInt(key.toString())
-//			List<Text> ip = new ArrayList<>();
-//			List<Double> newCentroid = Resources.listInitZero(Integer.parseInt(conf.getInt(Setup.D_PARAM_SIZE,15)));				
-			String centroidline = null;
-			String[] centroid = null;
-			List<Double> newCentroid = new ArrayList<>();
-			Integer num_list = 0;
-			for (Text t : lines) {
-//				StringTokenizer st = new StringTokenizer(t.toString(),"\t");
-//				String ip = st.nextToken();
-//				String[] value = st.nextToken().split(";");
-				String[] value = t.toString().split(">");
-				String type = value[0];
-				if (type.equals("centroids")) {
-					centroidline = value[1];
-					centroid = centroidline.split(";");
-				} else {
-					value = value[1].split(";");
-					// ip.add(new Text(st.nextToken()));
-					// List<Double> value =
-					// Resources.normalize6(conf,conf.get(Setup.JOB_PATH),st.nextToken());
-					int i = 0;
-					// Double d = 0.0;
-					for (String v : value) {
-						// Double d = newCentroid.get(i);
-						Double d = Double.parseDouble(v);
-						// newCentroid.set(i, d + Double.valueOf(v));
-						// //Double.parseDouble(st.nextToken())
-						try {
-							newCentroid.set(i, d + newCentroid.get(i));
-						} catch (IndexOutOfBoundsException e) {
-							newCentroid.add(d);
+			if(key.toString().matches("(\\d+)")) {
+				Configuration conf = context.getConfiguration();
+				String centroidline = null;
+				String[] centroid = null;
+				List<Double> newCentroid = new ArrayList<>();
+				Integer num_list = 0;
+				for (Text t : lines) {
+					String[] value = t.toString().split(">");
+					String type = value[0];
+					if (type.equals("centroids")) {
+						centroidline = value[1];
+						centroid = centroidline.split(";");
+					} else {
+						value = value[1].split(";");
+						int i = 0;
+						for (String v : value) {
+							Double d = Double.parseDouble(v);
+							try {
+								newCentroid.set(i, d + newCentroid.get(i));
+							} catch (IndexOutOfBoundsException e) {
+								newCentroid.add(d);
+							}
+							i++;
 						}
-						i++;
-					}
-					num_list++;
-				}
-//				context.write(key, new Text(t));
-			}
-//			int ttreq = conf.getInt(Setup.N_TOTAL_REQUESTS,1000);
-//			List<Double> variables = Resources.loadVar6(conf);
-			String compare_line = "0";
-			if (num_list > 0) {
-				String line = "";
-				for (int j = 0; j < conf.getInt(Setup.D_PARAM_SIZE, 15); j++) {
-//					if(variables.get(j) == 0.0) newCentroid.set(j,0.0);else 
-					Double v;
-					try {
-						v = newCentroid.get(j) / num_list;/* /variables.get(j) */
-					} catch (ArithmeticException e) {
-						v = 0.0;
-					}
-//					newCentroid.set(j,Resources.decScale((Double.isNaN(v)?0.0:v),Integer.parseInt(conf.get(Setup.USCALE))));
-					line += Resources.decScale((Double.isNaN(v) ? 0.0 : v), Integer.parseInt(conf.get(Setup.USCALE)))
-							+ ";";
-
-					Double dif = Math.abs(Double.parseDouble(centroid[j]) - v);
-					if (dif > context.getConfiguration().getDouble(Setup.ERROR_MARGIN, 5E-15)) {
-						compare_line = "1";
+						num_list++;
 					}
 				}
-//				newCentroids.set(Integer.parseInt(key.toString()), newCentroid);
-//				Resources.writeList(conf, newCentroids, Setup.NEW_CENTROID,conf.get(Setup.CENTROID_CUR_PATH));
-//				context.write(key, new Text(line));
-				mos.write("Centroids", key, new Text(line));
+				String compare_line = "0";
+				if (num_list > 0) {
+					String line = "";
+					for (int j = 0; j < conf.getInt(Setup.D_PARAM_SIZE, 15); j++) {
+						Double v;
+						try {
+							v = newCentroid.get(j) / num_list;
+						} catch (ArithmeticException e) {
+							v = 0.0;
+						}
+						line += Resources.decScale((Double.isNaN(v) ? 0.0 : v), Integer.parseInt(conf.get(Setup.USCALE)))
+								+ ";";
+	
+						Double dif = Math.abs(Double.parseDouble(centroid[j]) - v);
+						if (dif > context.getConfiguration().getDouble(Setup.ERROR_MARGIN, 5E-15)) {
+							compare_line = "1";
+						}
+					}
+					mos.write("Centroids", key, new Text(line));
+				} else {
+					compare_line = "1";
+					mos.write("Centroids", key, new Text(centroidline));
+				}
+				mos.write("Compare", key, new Text(compare_line));
 			} else {
-				compare_line = "1";
-				mos.write("Centroids", key, new Text(centroidline));
+				for(Text t : lines) {
+					mos.write("GroupList", key, t);
+				}
 			}
-			mos.write("Compare", key, new Text(compare_line));
-//			}
 		}
 	}
 

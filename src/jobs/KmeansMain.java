@@ -200,20 +200,18 @@ public class KmeansMain extends Configured implements Tool {
 			Resources.iterateFiles(fs, new Path(centroid_path), "Centroids-r-(\\d+)", (p) -> {
 				job_k.addCacheFile(p.toUri());
 			});
-			for (int k = 1; k <= kluster; k++) {
-				String k_index = String.valueOf(k);
-				k_index = "0".repeat(String.valueOf(kluster).length() - k_index.length()) + k_index;
-				MultipleOutputs.addNamedOutput(job_k, "GroupList" + k_index, TextOutputFormat.class, Text.class,
-						Text.class);
-			}
+			/*
+			 * for (int k = 1; k <= kluster; k++) { String k_index = String.valueOf(k);
+			 * k_index = "0".repeat(String.valueOf(kluster).length() - k_index.length()) +
+			 * k_index; MultipleOutputs.addNamedOutput(job_k, "GroupList" + k_index,
+			 * TextOutputFormat.class, Text.class, Text.class); }
+			 */
+			MultipleOutputs.addNamedOutput(job_k, "GroupList", TextOutputFormat.class, Text.class, Text.class);
 			MultipleOutputs.addNamedOutput(job_k, "Compare", TextOutputFormat.class, Text.class, Text.class);
 			res = job_k.waitForCompletion(true) ? 0 : 1;
 			if (res == 1)
 				return res;
-			Resources.appendFile(conf,
-					"K-means_" + kmeans_suffix + "-round_" + round_suffix + ": "
-							+ Resources.timeParse(LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(-3)) - timenow),
-					"Time.meta", conf.get(Setup.JOB_PATH));
+			Resources.recordTime(conf, timenow, "K-means_" + kmeans_suffix + "-round_" + round_suffix + ": ");
 			/*
 			 * if(!Resources.compareLists(conf, Setup.CENTROID,Setup.NEW_CENTROID,
 			 * centroid_path, centroid_path)) { FileUtil.copy(fs, new

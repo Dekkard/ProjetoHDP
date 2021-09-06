@@ -27,7 +27,7 @@ public class JobParserMain extends Configured implements Tool {
 			System.exit(usage());
 		Configuration conf = new Configuration();
 		conf.set(Setup.JOB_PATH, args[args.length - 1]);
-		int res = ToolRunner.run(conf, new JobParserMain(), RegexReconMain.setConfArgs(conf, args));
+		int res = ToolRunner.run(conf, new JobParserMain(), RegexReconMain.setConfArgs(conf, args, true, true, false, true));
 		System.exit(res);
 	}
 }

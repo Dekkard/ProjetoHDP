@@ -49,7 +49,7 @@ public class InnitCentroids extends Configured implements Tool {
 			System.exit(usage());
 		Configuration conf = new Configuration();
 		conf.set(Setup.JOB_PATH, args[args.length - 1]);
-		int res = ToolRunner.run(conf, new InnitCentroids(), RegexReconMain.setConfArgs(conf, args));
+		int res = ToolRunner.run(conf, new InnitCentroids(), RegexReconMain.setConfArgs(conf, args, false, true, false, false));
 		System.exit(res);
 	}
 }
